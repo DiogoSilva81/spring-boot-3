@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("medicos")
@@ -37,23 +38,39 @@ public class MedicoController {
     @PutMapping
     @Transactional
     public ResponseEntity atualizar(@RequestBody DadosAtualizacaoMedico dados) {
-        Medico medico = repository.getReferenceById(dados.id());
-        medico.atualizarInformacoes(dados);
-        return ResponseEntity.ok(new DadosDetalhamentoMedico(medico));
+        Optional<Medico> medicoOptional = repository.findById(dados.id());
+        if (medicoOptional.isPresent()){
+            Medico medico = medicoOptional.get();
+            medico.atualizarInformacoes(dados);
+            return ResponseEntity.ok(new DadosDetalhamentoMedico(medico));
+        }else{
+            return ResponseEntity.notFound().build();
+        }
+
     }
 
     @DeleteMapping("/{id}")
     @Transactional
     public ResponseEntity excluir(@PathVariable long id){
-        Medico medico = repository.getReferenceById(id);
-        medico.excluir();
-        return ResponseEntity.noContent().build();
+        Optional<Medico> medicoOptional = repository.findById(id);
+        if(medicoOptional.isPresent()){
+            Medico medico = medicoOptional.get();
+            medico.excluir();
+            return ResponseEntity.noContent().build();
+        }else{
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/{id}")
     public ResponseEntity detalhar(@PathVariable long id){
-        var medico = repository.getReferenceById(id);
-        return ResponseEntity.ok(new DadosDetalhamentoMedico(medico));
+        Optional<Medico> medicoOptional = repository.findById(id);
+        if(medicoOptional.isPresent()){
+            var medico = medicoOptional.get();
+            return ResponseEntity.ok(new DadosDetalhamentoMedico(medico));
+        }else{
+            return ResponseEntity.notFound().build();
+        }
     }
 
 }
